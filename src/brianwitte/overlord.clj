@@ -15,13 +15,6 @@
             [clojure.pprint :as pp])
   (:gen-class))
 
-
-(defn greet
-  "Callable entry point to the application."
-  [data]
-  (println (str "Hello, " (or (:name data) "World") "!")))
-
-
 ;; =============================================================================
 ;; Schemas
 ;; =============================================================================
@@ -240,6 +233,15 @@
                               (stop-system!)))))
 
 ;; =============================================================================
+;; Public API for exec-fn
+;; =============================================================================
+
+(defn start-daemon 
+  "Entry point for clj -X execution"
+  [_opts]
+  (-main))
+
+;; =============================================================================
 ;; Main
 ;; =============================================================================
 
@@ -275,18 +277,23 @@
   
   ;; Test the API
   (require '[clj-http.client :as http])
+  (require '[cheshire.core])
   
   ;; Health check
-  (http/get "http://localhost:8080/api/v1/health")
+  (http/get "http://localhost:8080/api/v1/health"
+            {:accept :json :as :json})
   
   ;; Create a task
   (http/post "http://localhost:8080/api/v1/tasks"
              {:content-type :json
-              :form-params {:name "Test task"
-                           :description "A test task"}})
+              :accept :json
+              :as :json
+              :body (cheshire.core/generate-string {:name "Test task"
+                                                   :description "A test task"})})
   
   ;; List tasks
-  (http/get "http://localhost:8080/api/v1/tasks")
+  (http/get "http://localhost:8080/api/v1/tasks"
+            {:accept :json :as :json})
   
   ;; Check task database
   @task-db
