@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <!-- Console appender for development -->
+  <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- File appender for production -->
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>logs/overlord.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>logs/overlord.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>30</maxHistory>
+      <totalSizeCap>1GB</totalSizeCap>
+    </rollingPolicy>
+    <encoder>
+      <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- Set specific logger levels -->
+  
+  <!-- Your application logging -->
+  <logger name="brianwitte.overlord" level="INFO" />
+  
+  <!-- Jetty - reduce to WARN to eliminate debug spam -->
+  <logger name="org.eclipse.jetty" level="WARN" />
+  
+  <!-- Other common noisy loggers -->
+  <logger name="org.eclipse.jetty.util.thread" level="WARN" />
+  <logger name="org.eclipse.jetty.io" level="WARN" />
+  <logger name="org.eclipse.jetty.server" level="INFO" />
+  
+  <!-- Ring/HTTP -->
+  <logger name="ring" level="INFO" />
+  
+  <!-- Integrant -->
+  <logger name="integrant" level="INFO" />
+  
+  <!-- Root logger level -->
+  <root level="INFO">
+    <appender-ref ref="CONSOLE" />
+    <!-- Uncomment for file logging in production -->
+    <!-- <appender-ref ref="FILE" /> -->
+  </root>
+
+  <!-- Alternative: Very quiet setup -->
+  <!--
+  <logger name="org.eclipse.jetty" level="ERROR" />
+  <logger name="org.eclipse.jetty.server" level="WARN" />
+  <root level="WARN">
+    <appender-ref ref="CONSOLE" />
+  </root>
+  -->
+</configuration>

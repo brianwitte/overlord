@@ -21,6 +21,9 @@
         clj-http/clj-http {:mvn/version "3.13.0"}
         cheshire/cheshire {:mvn/version "5.13.0"}
 
+        ;; PCAP
+        clj-net-pcap/clj-net-pcap {:mvn/version "1.8.4"}
+
         ;; JOSE + JWT
         com.nimbusds/nimbus-jose-jwt {:mvn/version "10.3"}
 

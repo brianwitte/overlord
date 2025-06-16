@@ -12,7 +12,9 @@
             [malli.core :as malli]
             [malli.transform :as mt]
             [clojure.tools.logging :as log]
-            [clojure.pprint :as pp])
+            [clojure.pprint :as pp]
+            [clj-http.client :as http]
+            [cheshire.core :as json])
   (:gen-class))
 
 ;; =============================================================================
@@ -20,7 +22,7 @@
 ;; =============================================================================
 
 (def task-schema
-  [:map
+  [:kmap
    [:id :uuid]
    [:name :string]
    [:status [:enum "pending" "running" "completed" "failed"]]
@@ -101,6 +103,32 @@
       {:status 404
        :body {:error "Task not found"}})))
 
+(defn ping-handler [_request]
+  (try
+    (let [ping-response (http/get "https://dns.google/resolve?name=google.com&type=A"
+                                  {:socket-timeout 5000
+                                   :connection-timeout 5000
+                                   :throw-exceptions false
+                                   :accept :json
+                                   :as :json})
+          timestamp (java.time.Instant/now)
+          request-uuid (random-uuid)
+          ping-successful (= 200 (:status ping-response))]
+      (log/info "Ping attempt to Google DNS API -" (if ping-successful "success" "failed"))
+      {:status 200
+       :body {:timestamp timestamp
+              :uuid request-uuid
+              :ping-target "https://dns.google/resolve"
+              :ping-successful ping-successful
+              :ping-status (:status ping-response)
+              :response-time-ms (get-in ping-response [:request-time] 0)}})
+    (catch Exception e
+      (log/error e "Failed to ping Google DNS API")
+      {:status 500
+       :body {:error "Failed to ping target"
+              :timestamp (java.time.Instant/now)
+              :uuid (random-uuid)}})))
+
 ;; =============================================================================
 ;; Routes
 ;; =============================================================================
@@ -108,6 +136,7 @@
 (def routes
   ["/api/v1"
    ["/health" {:get health-handler}]
+   ["/ping" {:get ping-handler}]
    ["/tasks"
     ["" {:get list-tasks-handler
          :post {:handler create-task-handler
@@ -282,6 +311,10 @@
   
   ;; Health check
   (http/get "http://localhost:8080/api/v1/health"
+            {:accept :json :as :json})
+  
+  ;; Test ping endpoint
+  (http/get "http://localhost:8080/api/v1/ping"
             {:accept :json :as :json})
   
   ;; Create a task
